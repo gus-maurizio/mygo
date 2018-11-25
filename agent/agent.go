@@ -83,4 +83,16 @@ func main() {
         }
 	logrecord = p.Sprintf("config: %#v\n", config)
 	log.Print(logrecord)
+
+	// loop ticker
+	ticker := time.NewTicker(1 * time.Millisecond)
+	go func() {
+		for _ = range ticker.C {
+			log.Println("Tick")
+		}
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	ticker.Stop()
+	log.Println("ticker stopped")
 }
