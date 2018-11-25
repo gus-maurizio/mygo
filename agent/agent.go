@@ -32,6 +32,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"syscall"
 	"time"
 //        "types/stack"
 //        "strings"
@@ -94,7 +95,8 @@ func main() {
 
 	// now get ready to finish if some signals are received
 	csignal := make(chan os.Signal, 3)
-	signal.Notify(csignal)
+	signal.Notify(csignal, syscall.SIGINT)
+	signal.Notify(csignal, syscall.SIGTERM)
 	log.Println("Waiting for a signal to end")
 	s       := <-csignal
 	log.Println("Got signal:", s)	
