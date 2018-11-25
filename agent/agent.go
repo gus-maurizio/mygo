@@ -66,7 +66,8 @@ func main() {
 	myExecDir := filepath.Dir(os.Args[0])
         p         := message.NewPrinter(language.English)
 
-	// good practive to initialize what we want 
+	//--------------------------------------------------------------------------//
+	// good practice to initialize what we want 
         rand.Seed(time.Now().UTC().UnixNano())
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile | log.LUTC)
 
@@ -80,6 +81,7 @@ func main() {
 	log.Print("Program Started")
 	log.Print(logrecord)
 
+	//--------------------------------------------------------------------------//
 	// read the yaml configuration into the Config structure
 	config 	  := Config{}
 	yamlFile, err := ioutil.ReadFile(*yamlPtr)
@@ -93,12 +95,15 @@ func main() {
 	logrecord = p.Sprintf("config: %#v\n", config)
 	log.Print(logrecord)
 
+	//--------------------------------------------------------------------------//
 	// now get ready to finish if some signals are received
-	csignal := make(chan os.Signal, 3)
+	csignal   := make(chan os.Signal, 3)
 	signal.Notify(csignal, syscall.SIGINT)
 	signal.Notify(csignal, syscall.SIGTERM)
 	log.Println("Waiting for a signal to end")
-	s       := <-csignal
+
+	s         := <-csignal
+
 	log.Println("Got signal:", s)	
 	cleanup()
 	log.Println("Program Ended")
