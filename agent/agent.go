@@ -25,6 +25,8 @@ import (
 //        "fmt"
         "golang.org/x/text/language"
         "golang.org/x/text/message"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -33,6 +35,20 @@ import (
 //        "types/stack"
 //        "strings"
 )
+
+// This is what gets loaded from the -f .yaml configuration file
+type Config struct {
+        A string			`yaml:"a"`
+	DefaultUnit string		`yaml:"defaulttimeunit"`
+	DefaultTick int			`yaml:"defaulttimetick"`
+        Plugins []struct {
+		PluginName   string	`yaml:"pluginname"`
+		PluginModule string	`yaml:"pluginmodule"`
+		PluginUnit   string	`yaml:"plugintimeunit"`
+		PluginTick   int	`yaml:"plugintimetick"`
+        }
+}
+
 
 func main() {
 	// get the program name and directory where it is loaded from
@@ -52,5 +68,19 @@ func main() {
 
         logrecord := p.Sprintf("%s [from %s] will read config from %s in debug %v and generate %d \n",
                 myName, myExecDir, *yamlPtr, *debugPtr, *numPtr)
+	log.Print("Program Started")
+	log.Print(logrecord)
+
+	// read the yaml configuration into the Config structure
+	config 	  := Config{}
+	yamlFile, err := ioutil.ReadFile(*yamlPtr)
+	if err != nil {
+		log.Fatalf("config YAML file Get err  #%v ", err)
+	}
+	err	  = yaml.Unmarshal(yamlFile, &config)
+	if err != nil {
+        	log.Fatalf("error: %v", err)
+        }
+	logrecord = p.Sprintf("config: %#v\n", config)
 	log.Print(logrecord)
 }
