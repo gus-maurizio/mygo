@@ -21,14 +21,14 @@
 package main
 
 import (
-        "golang.org/x/text/language"
-        "golang.org/x/text/message"
+//        "golang.org/x/text/language"
+//        "golang.org/x/text/message"
 //        "gopkg.in/yaml.v2"
 //        "io/ioutil"
         "log"
 //        "math/rand"
-        "path/filepath"
-        "time"
+//        "path/filepath"
+//        "time"
 //        "types/stack"
 //        "strings"
 )
@@ -36,7 +36,7 @@ import (
 type greeting string
 
 func (g greeting) Greet() {
-    fmt.Println("Hello Universe")
+    log.Println("Hello Universe")
 }
 
 // exported as symbol named "Greeter"
