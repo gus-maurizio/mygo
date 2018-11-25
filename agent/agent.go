@@ -30,6 +30,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"time"
 //        "types/stack"
@@ -47,6 +48,13 @@ type Config struct {
 		PluginUnit   string	`yaml:"plugintimeunit"`
 		PluginTick   int	`yaml:"plugintimetick"`
         }
+}
+
+
+var p = message.NewPrinter(language.English)
+
+func cleanup() {
+	log.Print("Program Cleanup Started")
 }
 
 
@@ -84,15 +92,13 @@ func main() {
 	logrecord = p.Sprintf("config: %#v\n", config)
 	log.Print(logrecord)
 
-	// loop ticker
-	ticker := time.NewTicker(1 * time.Millisecond)
-	go func() {
-		for _ = range ticker.C {
-			log.Println("Tick")
-		}
-	}()
-
-	time.Sleep(50 * time.Millisecond)
-	ticker.Stop()
-	log.Println("ticker stopped")
+	// now get ready to finish if some signals are received
+	csignal := make(chan os.Signal, 3)
+	signal.Notify(csignal)
+	log.Println("Waiting for a signal to end")
+	s       := <-csignal
+	log.Println("Got signal:", s)	
+	cleanup()
+	log.Println("Program Ended")
+	os.Exit(4)
 }
