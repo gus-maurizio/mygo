@@ -29,20 +29,25 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"syscall"
 	"time"
 //        "types/stack"
 //        "strings"
+	"strconv"
 )
 
 // This is what gets loaded from the -f .yaml configuration file
 type Config struct {
         A string			`yaml:"a"`
-	DefaultUnit string		`yaml:"defaulttimeunit"`
-	DefaultTick int			`yaml:"defaulttimetick"`
+	DefaultUnit    string		`yaml:"defaulttimeunit"`
+	DefaultTick    int		`yaml:"defaulttimetick"`
+	PrometheusPort int		`yaml:"prometheusport"`
+	PrometheusHandle string		`yaml:"prometheushandle"`
         Plugins []struct {
 		PluginName   string	`yaml:"pluginname"`
 		PluginModule string	`yaml:"pluginmodule"`
@@ -96,7 +101,17 @@ func main() {
 	log.Print(logrecord)
 
 	//--------------------------------------------------------------------------//
+	// time to start a prometheus metrics server
+        // and export any metrics on the /metrics endpoint.
+        http.Handle(config.PrometheusHandle, promhttp.Handler())
+	go func() {
+        	log.Printf("Beginning to serve on port %d at %s", config.PrometheusPort, config.PrometheusHandle)
+        	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(config.PrometheusPort), nil))
+	}()
+
+	//--------------------------------------------------------------------------//
 	// now get ready to finish if some signals are received
+	log.Println("Setting signal handlers")
 	csignal   := make(chan os.Signal, 3)
 	signal.Notify(csignal, syscall.SIGINT)
 	signal.Notify(csignal, syscall.SIGTERM)

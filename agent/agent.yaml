@@ -1,6 +1,8 @@
 a:			This is a test
 defaulttimeunit:	Milliseconds
 defaulttimetick:	10
+prometheusport:		8080
+prometheushandle:	/metrics
 # plugin section
 plugins:
   - pluginname:		MyPlugin
