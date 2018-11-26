@@ -56,11 +56,22 @@ type Config struct {
         }
 }
 
+type PluginRuntime struct {
+	ticker		*time.Ticker
+	pluginName	string
+}
+
+var PluginSlice []PluginRuntime
 
 var p = message.NewPrinter(language.English)
 
 func cleanup() {
 	log.Print("Program Cleanup Started")
+	for pluginIdx, PluginPtr := range PluginSlice {
+	        logrecord := p.Sprintf("Stopping plugin %3d %20s ticker %#v\n", pluginIdx, PluginPtr.pluginName, PluginPtr.ticker)
+		log.Print(logrecord)
+		PluginPtr.ticker.Stop()
+	}
 }
 
 
@@ -108,6 +119,14 @@ func main() {
         	log.Printf("Beginning to serve on port %d at %s", config.PrometheusPort, config.PrometheusHandle)
         	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(config.PrometheusPort), nil))
 	}()
+
+	//--------------------------------------------------------------------------//
+	// Start the base plugin
+	// set the timer
+	pluginMaker(500 * time.Millisecond, "baseChannelPlugin", baseChannelPlugin)
+
+	// now a Mutex one...
+	pluginMaker(800 * time.Millisecond, "baseMutexPlugin",   baseMutexPlugin)
 
 	//--------------------------------------------------------------------------//
 	// now get ready to finish if some signals are received
