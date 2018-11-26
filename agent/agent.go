@@ -116,9 +116,7 @@ func main() {
 	signal.Notify(csignal, syscall.SIGINT)
 	signal.Notify(csignal, syscall.SIGTERM)
 	log.Println("Waiting for a signal to end")
-
 	s         := <-csignal
-
 	log.Println("Got signal:", s)	
 	cleanup()
 	log.Println("Program Ended")
