@@ -21,7 +21,7 @@ func baseMeasure()  string {
 	me, _, _, ok := runtime.Caller(0)
 	mydetails := runtime.FuncForPC(me)
 	if ok && mydetails != nil { whoami = mydetails.Name() }
-        return(p.Sprintf("sample %30s called by %30s at %f", whoami, caller, float64(time.Now().UnixNano())/1e9))
+        return(p.Sprintf("sample %25s called by %25s at %f", whoami, caller, float64(time.Now().UnixNano())/1e9))
 }
 
 
