@@ -24,6 +24,7 @@ import (
 	"agent/types"
 	"flag"
 	//        "fmt"
+	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -88,6 +89,22 @@ func main() {
 	}
 	logrecord = p.Sprintf("config: %#v\n", config)
 	log.Print(logrecord)
+
+	//--------------------------------------------------------------------------//
+	// Complete the Context values with non-changing information (while we are 
+	// alive!)
+
+        myContext.AccountId      = "000000000000"
+        myContext.ApplicationId  = config.ApplicationId
+        myContext.ModuleId       = config.ModuleId
+        myContext.VersionId      = config.VersionId
+        myContext.EnvironmentId  = config.EnvironmentId
+        myContext.ComputeId      = "iMac"
+        myContext.RegionId       = "US-EAST"
+        myContext.ZoneId         = "Reston"
+        myContext.TraceId        = uuid.New().String()
+        logrecord = p.Sprintf("Context: %#v\n", myContext)
+        log.Print(logrecord)
 
 	//--------------------------------------------------------------------------//
 	// time to start a prometheus metrics server

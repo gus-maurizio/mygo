@@ -3,6 +3,11 @@ defaulttimeunit:	Milliseconds
 defaulttimetick:	10
 prometheusport:		9000
 prometheushandle:	/metrics
+# config of runtime
+applicationid:		ASVMYNAME
+moduleid:		go.agent
+versionid:		1.0.0.a
+environmentid:		Production
 # plugin section
 plugins:
   - pluginname:		MyPlugin

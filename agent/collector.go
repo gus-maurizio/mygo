@@ -1,7 +1,10 @@
 package main
 
 import (
+	"agent/types"
 	"github.com/prometheus/client_golang/prometheus"
+	"net"
+	"os/user"
 )
 
 //Define the metrics we wish to expose
@@ -19,12 +22,15 @@ var messageMetric = prometheus.NewCounterVec(
 )
 
 var bytesMetric = prometheus.NewCounterVec(
-        prometheus.CounterOpts{
-                Name: "agent_bytes_sent",
-                Help: "Number of bytes plugin has generated.",
-        },
-        []string{"plugin"},
+	prometheus.CounterOpts{
+		Name: "agent_bytes_sent",
+		Help: "Number of bytes plugin has generated.",
+	},
+	[]string{"plugin"},
 )
+
+
+var myContext types.Context 
 
 
 func init() {
@@ -36,4 +42,26 @@ func init() {
 	//Set fooMetric to 1
 	fooMetric.Set(0)
 
+	//Get all the components needed to populate Context.
+	osUser, _ := user.Current()
+	myContext.UserId  = osUser.Username 
+	myContext.UserUID = osUser.Uid 
+	myContext.AccountId = "000000000000"
+	// need to get ALL ip addresses from all interfaces
+	ifaces, _ := net.Interfaces()
+	for _, i := range ifaces {
+		addrs, _ := i.Addrs()
+		// handle err
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			// process IP address
+			myContext.IPaddress = append(myContext.IPaddress, ip.String())
+		}
+	}
 }
