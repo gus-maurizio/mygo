@@ -4,6 +4,7 @@ import (
 	"agent/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"net"
+	"os"
 	"os/user"
 )
 
@@ -46,6 +47,7 @@ func init() {
 	osUser, _ := user.Current()
 	myContext.UserId  = osUser.Username 
 	myContext.UserUID = osUser.Uid 
+	myContext.ExecuteId, _ = os.Hostname()
 	myContext.AccountId = "000000000000"
 	// need to get ALL ip addresses from all interfaces
 	ifaces, _ := net.Interfaces()

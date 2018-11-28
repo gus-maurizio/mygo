@@ -10,6 +10,7 @@ type Context struct {
 	UserId        string   `json:"userid"`
 	UserUID       string   `json:"uid"`
 	AccountId     string   `json:"accountid"`
+	ExecuteId     string   `json:"executeid"`
 	IPaddress     []string `json:"ipaddress"`
 	ApplicationId string   `json:"applicationid"`
 	ModuleId      string   `json:"moduleid"`
@@ -18,6 +19,7 @@ type Context struct {
 	ComputeId     string   `json:"computeid"`
 	RegionId      string   `json:"regionid"`
 	ZoneId        string   `json:"zoneid"`
+	RunId         string   `json:"runid"`
 	TraceId       string   `json:"traceid"`
 	RequestId     string   `json:"requestid"`
 	ParentId      string   `json:"parentid"`

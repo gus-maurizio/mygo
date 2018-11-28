@@ -102,7 +102,7 @@ func main() {
         myContext.ComputeId      = "iMac"
         myContext.RegionId       = "US-EAST"
         myContext.ZoneId         = "Reston"
-        myContext.TraceId        = uuid.New().String()
+        myContext.RunId          = uuid.New().String()
         logrecord = p.Sprintf("Context: %#v\n", myContext)
         log.Print(logrecord)
 
