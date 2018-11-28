@@ -1,0 +1,17 @@
+a:			This is a test
+defaulttimeunit:	Milliseconds
+defaulttimetick:	10
+prometheusport:		9000
+prometheushandle:	/metrics
+# plugin section
+plugins:
+  - pluginname:		MyPlugin
+    pluginmodule:	./plugin/MyPlugin.so
+    plugintimeunit:	Seconds
+    plugintimetick:	1
+#
+  - pluginname:		MyCPUPlugin
+    pluginmodule:	./plugin/MyPlugin.so
+    plugintimeunit:	Milliseconds
+    plugintimetick:	50
+#

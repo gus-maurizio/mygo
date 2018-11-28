@@ -1,7 +1,7 @@
 // Copyright 2018 Gustavo Maurizio
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"), 
-// to deal in the Software without restriction, including without limitation 
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
 // the rights to use, copy, modify, merge, publish, distribute, sublicense,
 // and/or sell copies of the Software, and to permit persons to whom the
 // Software is furnished to do so, subject to the following conditions:
@@ -21,10 +21,12 @@
 package main
 
 import (
+	"agent/types"
 	"flag"
-//        "fmt"
-        "golang.org/x/text/language"
-        "golang.org/x/text/message"
+	//        "fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -33,110 +35,86 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"syscall"
 	"time"
-//        "types/stack"
-//        "strings"
+	//        "strings"
 	"strconv"
 )
 
-// This is what gets loaded from the -f .yaml configuration file
-type Config struct {
-        A string			`yaml:"a"`
-	DefaultUnit    string		`yaml:"defaulttimeunit"`
-	DefaultTick    int		`yaml:"defaulttimetick"`
-	PrometheusPort int		`yaml:"prometheusport"`
-	PrometheusHandle string		`yaml:"prometheushandle"`
-        Plugins []struct {
-		PluginName   string	`yaml:"pluginname"`
-		PluginModule string	`yaml:"pluginmodule"`
-		PluginUnit   string	`yaml:"plugintimeunit"`
-		PluginTick   int	`yaml:"plugintimetick"`
-        }
-}
-
-type PluginRuntime struct {
-	ticker		*time.Ticker
-	pluginName	string
-}
-
-var PluginSlice []PluginRuntime
+var PluginSlice []types.PluginRuntime
 
 var p = message.NewPrinter(language.English)
 
 func cleanup() {
 	log.Print("Program Cleanup Started")
 	for pluginIdx, PluginPtr := range PluginSlice {
-	        logrecord := p.Sprintf("Stopping plugin %3d %20s ticker %#v\n", pluginIdx, PluginPtr.pluginName, PluginPtr.ticker)
+		logrecord := p.Sprintf("Stopping plugin %3d %20s ticker %#v\n", pluginIdx, PluginPtr.PluginName, PluginPtr.Ticker)
 		log.Print(logrecord)
-		PluginPtr.ticker.Stop()
+		PluginPtr.Ticker.Stop()
 	}
 }
-
 
 func main() {
 	// get the program name and directory where it is loaded from
 	// also create a properly formatted (language aware) printer object
-        myName    := filepath.Base(os.Args[0])
+	myName := filepath.Base(os.Args[0])
 	myExecDir := filepath.Dir(os.Args[0])
-        p         := message.NewPrinter(language.English)
 
 	//--------------------------------------------------------------------------//
-	// good practice to initialize what we want 
-        rand.Seed(time.Now().UTC().UnixNano())
+	// good practice to initialize what we want
+	rand.Seed(time.Now().UTC().UnixNano())
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile | log.LUTC)
 
-        yamlPtr   := flag.String("f", "./agent.yaml",  "Agent configuration YAML file")
-        debugPtr  := flag.Bool("d", false,  "Agent debug mode - verbose")
-        numPtr    := flag.Int("n", 100,  "number of records")
-        flag.Parse()
+	yamlPtr := flag.String("f", "./config/agent.yaml", "Agent configuration YAML file")
+	debugPtr := flag.Bool("d", false, "Agent debug mode - verbose")
+	numPtr := flag.Int("n", 100, "number of records")
+	flag.Parse()
 
-        logrecord := p.Sprintf("%s [from %s] will read config from %s in debug %v and generate %d \n",
-                myName, myExecDir, *yamlPtr, *debugPtr, *numPtr)
+	logrecord := p.Sprintf("%s [from %s] will read config from %s in debug %v and generate %d \n",
+		myName, myExecDir, *yamlPtr, *debugPtr, *numPtr)
 	log.Print("Program Started")
 	log.Print(logrecord)
 
 	//--------------------------------------------------------------------------//
 	// read the yaml configuration into the Config structure
-	config 	  := Config{}
+	config := types.Config{}
 	yamlFile, err := ioutil.ReadFile(*yamlPtr)
 	if err != nil {
 		log.Fatalf("config YAML file Get err  #%v ", err)
 	}
-	err	  = yaml.Unmarshal(yamlFile, &config)
+	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
-        	log.Fatalf("error: %v", err)
-        }
+		log.Fatalf("error: %v", err)
+	}
 	logrecord = p.Sprintf("config: %#v\n", config)
 	log.Print(logrecord)
 
 	//--------------------------------------------------------------------------//
 	// time to start a prometheus metrics server
-        // and export any metrics on the /metrics endpoint.
-        http.Handle(config.PrometheusHandle, promhttp.Handler())
+	// and export any metrics on the /metrics endpoint.
+	http.Handle(config.PrometheusHandle, promhttp.Handler())
 	go func() {
-        	log.Printf("Beginning to serve on port %d at %s", config.PrometheusPort, config.PrometheusHandle)
-        	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(config.PrometheusPort), nil))
+		log.Printf("Beginning to serve on port %d at %s", config.PrometheusPort, config.PrometheusHandle)
+		log.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.PrometheusPort), nil))
 	}()
 
 	//--------------------------------------------------------------------------//
 	// Start the base plugin
 	// set the timer
-	pluginMaker(500 * time.Millisecond, "baseChannelPlugin", baseChannelPlugin, baseMeasure)
+	pluginMaker(500*time.Millisecond, "baseChannelPlugin", basePlugin, baseMeasure)
 
 	// now a Mutex one...
-	pluginMaker(1000 * time.Millisecond, "baseMutexPlugin",   baseMutexPlugin,   baseMeasure)
+	pluginMaker(1000*time.Millisecond, "baseMutexPlugin", basePlugin, baseMeasure)
 
 	//--------------------------------------------------------------------------//
 	// now get ready to finish if some signals are received
 	log.Println("Setting signal handlers")
-	csignal   := make(chan os.Signal, 3)
+	csignal := make(chan os.Signal, 3)
 	signal.Notify(csignal, syscall.SIGINT)
 	signal.Notify(csignal, syscall.SIGTERM)
 	log.Println("Waiting for a signal to end")
-	s         := <-csignal
-	log.Println("Got signal:", s)	
+	s := <-csignal
+	log.Println("Got signal:", s)
 	cleanup()
 	log.Println("Program Ended")
 	os.Exit(4)
